@@ -61,7 +61,6 @@ class GridWorld:
         for agent in agents:
             self.grid[agent.pos[0], agent.pos[1]].append(agent)
 
-    
     def _reset(self, loc_a, loc_b, agents):
 
         self.loc_a = loc_a
@@ -161,10 +160,13 @@ class GridWorld:
     # returns the reward/penalty
     def attempt_action_for_agent(self, agent, action):
 
+        # -12s and 25s give 70-74% successes
+
         ## rewards/penalties
-        boundary_pen = -20
-        a_reach_rew = 20
-        b_reach_rew = 50
+        boundary_pen = -12
+        a_reach_rew = 25
+        b_reach_rew = 25
+        collision_pen = -20
 
         new_pos = agent.pos
         agent.num_steps += 1
@@ -225,7 +227,6 @@ class GridWorld:
         
         elif ( new_pos == self.loc_b ) and ( agent.reached_a ):
             agent.done = True
-
             # reached_a gets set to false as we need the agents to learn an infinite behavior - the agent will now head back to A
             agent.reached_a = False
             loc_reach_rew = b_reach_rew
@@ -236,7 +237,9 @@ class GridWorld:
             agents_in_cell = self.grid[new_pos[0], new_pos[1]]
             for agent2 in agents_in_cell:
                 if agent2.reached_a != agent.reached_a:
-                    loc_reach_rew = -5
+                    agent.num_collisions += 1
+                    loc_reach_rew = collision_pen
+                    break
 
         ## if it was a normal step, reward -1
         return loc_reach_rew
@@ -272,12 +275,22 @@ class GridWorld:
 
         print(f"* followed by a number indicates the presence of a number of agents in that cell.\nagents at A and B are not indicated.\n")
 
+        # debug print agents in the grid
+        print("agents in the grid:")
+        for id, ag in self.get_agents_dict().items():
+            print(id, ag.pos, ag.reached_a, end=' | ')
+        print()
+
+# initialise a number of agents randomly in either loc_a or loc_b
+# loc_a and loc_b are coords of the form (x,y)
+# returns a list of created agents of ids from 1 to num_agents
+# and the first agent (id 1) is always placed at loc_b
 def init_agents(num_agents, loc_a, loc_b):
 
     agents = []
 
     # for debugging only
-    debug_locs = [loc_a, loc_b, (loc_a[0] - 1, loc_a[1]), (loc_a[0] + 1, loc_a[1]), (loc_b[0] - 1, loc_b[1])]
+    # debug_locs = [loc_a, loc_b, (loc_a[0] - 1, loc_a[1]), (loc_a[0] + 1, loc_a[1]), (loc_b[0] - 1, loc_b[1])]
 
     for i in range(num_agents):
 
@@ -295,9 +308,9 @@ def init_agents(num_agents, loc_a, loc_b):
         rd_loc = rd.choice([loc_a, loc_b])
         
         # debug
-        rd_loc = rd.choice(debug_locs)
+        # rd_loc = rd.choice(debug_locs)
 
-        agents.append( Agent(i+1, rd_loc, False, loc_a) )
+        agents.append( Agent(i+1, rd_loc, (rd_loc==loc_a), loc_a) )
     
     return agents
 

@@ -6,8 +6,8 @@ import copy
 # You need to instantiate the constant for the size of the state space below. This will be used as the size of the input tensor for your Q-network
 
 # %%
-statespace_size=7
-learning_rate = 1e-3
+statespace_size = 15
+learning_rate = 1e-2
 
 # %% [markdown]
 # The function "prepare_torch" needs to be called once and only once at the start of your program to initialise PyTorch and generate the two Q-networks. It returns the target model (for testing).

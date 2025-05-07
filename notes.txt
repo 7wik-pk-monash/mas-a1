@@ -1,0 +1,10 @@
+training:
+figure out a way to count how many times all 4 agents have finished pickups and dropoffs - and display that at the end of each training epoch (or store in a file)
+store steps of each of the 4 agents on top of total steps - store prev versions of these 4 numbers - compare prev and curr numbers - if these turn out to all be equal 
+8 times in a row, terminate epoch
+
+store moves of each agent when testing - in a dict?
+
+defn of done:
+all 4 agents must switch reached_a at least twice
+look into eps decay - sus

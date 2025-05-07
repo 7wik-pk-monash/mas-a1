@@ -24,7 +24,7 @@ batch_size = 128
 replay = deque(maxlen=mem_size)
 max_moves = 100
 h = 0
-sync_freq = 200
+sync_freq = 250
 j=0
 losses=[]
 rewards=[]
@@ -38,9 +38,19 @@ m = 5
 
 num_agents = 4
     
-loc_a = (4,1)
+loc_a = (3,1)
 loc_b = (3,2)
 agents = init_agents(num_agents, loc_a, loc_b)
+
+# debug print agents in the grid
+print("agents in the grid:")
+for ag in agents:
+    print(ag.id, ag.pos, ag.reached_a, end=' | ')
+print()
+
+# # debug print agent neighbourhoods
+# a1n = gw.get_agents_neighbourhood(agent=agents[0])
+# a2n = gw.get_agents_neighbourhood(agent=agents[1])
 
 gw = GridWorld(n, m, loc_a, loc_b, agents)
 gw.display()
@@ -64,11 +74,13 @@ while loop:
 
     # # change loop_agents to random order
     loop_agents = agents
+    max_reward = 0
     
     for agent in loop_agents:
 
         state1 = states1[agent.id]
         steps += 1
+        j += 1
         qvals = get_qvals(state1)
 
         if (rd.random() < epsilon):
@@ -82,6 +94,9 @@ while loop:
         action = action_set[action_]
         
         reward = gw.attempt_action_for_agent(agent, action)
+
+        if reward > max_reward:
+            max_reward = reward
 
         state2 = gw.get_np_state_for_agent(agent).reshape(1, statespace_size)
 
@@ -97,11 +112,37 @@ while loop:
         states1[agent.id] = state2
     
     if len(replay) > batch_size:
-        minibatch = rd.sample(replay, batch_size)
-        
+        minibatch = np.array(rd.sample(replay, batch_size))
+        states = minibatch[...,0]
+        actions = minibatch[...,1]
+        targets = [TD_target(r, gamma, d, get_maxQ(s2)) for (_,_,r,s2,d) in minibatch]
+        current_loss = train_one_step(states, actions, targets, gamma)
+        losses.append(current_loss)
+        clear_output(wait=True)
+        print(1, " successes:", successes, " loss=", current_loss)
+        print(f"episode reward: {episode_reward} mov: {steps}")
+        print()
+        if j % sync_freq == 0:
+            update_target()
+
+    if reward == 500 or steps > max_moves:
+        rewards.append(episode_reward)  
+        loop = False
+        steps = 0
+    
+    # debug
+    if steps == 20:
+        loop = False
+        break
+
     
 
-        
+from matplotlib import pylab as plt
+
+plt.xlabel("Episode",fontsize=22)
+plt.ylabel("Reward",fontsize=22)
+plt.plot(np.array(losses))
+plt.figure(figsize=(10,7))
 
 
 ### Runner skeleton
