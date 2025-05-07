@@ -7,7 +7,7 @@ import copy
 
 # %%
 statespace_size = 15
-learning_rate = 1e-2
+learning_rate = 1e-4
 
 # %% [markdown]
 # The function "prepare_torch" needs to be called once and only once at the start of your program to initialise PyTorch and generate the two Q-networks. It returns the target model (for testing).

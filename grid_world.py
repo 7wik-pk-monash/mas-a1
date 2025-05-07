@@ -163,9 +163,9 @@ class GridWorld:
         # -12s and 25s give 70-74% successes
 
         ## rewards/penalties
-        boundary_pen = -12
-        a_reach_rew = 25
-        b_reach_rew = 25
+        boundary_pen = -5
+        a_reach_rew = 20
+        b_reach_rew = 20
         collision_pen = -20
 
         new_pos = agent.pos
@@ -311,6 +311,16 @@ def init_agents(num_agents, loc_a, loc_b):
         # rd_loc = rd.choice(debug_locs)
 
         agents.append( Agent(i+1, rd_loc, (rd_loc==loc_a), loc_a) )
+    
+    return agents
+
+def init_agents_random(n, m, num_agents, loc_a):
+
+    agents = []
+
+    for i in range(num_agents):
+        pos = ( rd.randint(0, n-1), rd.randint(0, m-1) )
+        agents.append( Agent( i+1, pos, rd.choice([True, False]), loc_a ))
     
     return agents
 

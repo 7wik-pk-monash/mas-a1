@@ -4,6 +4,7 @@ store steps of each of the 4 agents on top of total steps - store prev versions 
 8 times in a row, terminate epoch
 
 store moves of each agent when testing - in a dict?
+start agents of random types from random locs in each epoch
 
 defn of done:
 all 4 agents must switch reached_a at least twice
