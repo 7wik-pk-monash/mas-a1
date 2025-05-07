@@ -19,8 +19,6 @@ class Agent:
         if(loc_a == pos):
             self.reached_a = True
 
-        # indicates if it has reached both B and B in a run
-        self.done = False
         self.num_collisions = 0
         self.num_steps = 0
     
@@ -163,10 +161,10 @@ class GridWorld:
         # -12s and 25s give 70-74% successes
 
         ## rewards/penalties
-        boundary_pen = -5
-        a_reach_rew = 20
-        b_reach_rew = 20
-        collision_pen = -20
+        boundary_pen = -25
+        a_reach_rew = 50
+        b_reach_rew = 50
+        collision_pen = -25
 
         new_pos = agent.pos
         agent.num_steps += 1
