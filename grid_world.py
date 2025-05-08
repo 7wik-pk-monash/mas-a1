@@ -2,6 +2,7 @@ import numpy as np
 
 import random as rd
 
+from stage2skeletonv3 import statespace_size
 
 # north, east, south, west are the valid actions each agent can take
 actions = ['n', 'e', 's', 'w']
@@ -149,7 +150,7 @@ class GridWorld:
         for n in neighbourhood_state:
             state.append(int(n))
 
-        return np.array(state)
+        return np.array(state).reshape(1, statespace_size)
 
 
     # attempt to perform an action for a given agent if action is valid/permissible.
@@ -162,9 +163,9 @@ class GridWorld:
 
         ## rewards/penalties
         boundary_pen = -25
-        a_reach_rew = 50
-        b_reach_rew = 50
-        collision_pen = -25
+        a_reach_rew = 100
+        b_reach_rew = 100
+        collision_pen = -100
 
         new_pos = agent.pos
         agent.num_steps += 1
