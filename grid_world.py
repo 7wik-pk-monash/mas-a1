@@ -90,12 +90,13 @@ class GridWorld:
         
         return agents_dict
 
-    # should return a 2D matrix of agents of the opposite type in agent's neighbourhood
     def get_agents_neighbourhood_opp_type(self, agent):
         
         neighbours = [ False, False, False , \
                        False,        False , \
                        False, False, False ]
+
+        neighbours4 = [False, False, False, False]
 
         i = 0
         for dx in range(-1,2,1):
@@ -109,14 +110,56 @@ class GridWorld:
 
                 if (x >= 0) and (y >= 0) and (x < self.n) and (y < self.m):
                     
-                    if len( self.grid[x, y] ) > 0:
+                    # 8 neighbours
+                    # if len( self.grid[x, y] ) > 0:
 
-                        for n in self.grid[x, y]:
-                            neighbours[i] = (n.reached_a != agent.reached_a)
+                    #     for n in self.grid[x, y]:
+                    #         neighbours[i] = (n.reached_a != agent.reached_a)
+                    
+                    # just NESW neighbours
+                    if (dy == 0) and (dx == -1):
+                        if len( self.grid[x, y] ) > 0:
+                            
+                            for n in self.grid[x, y]:
+                                if (n.reached_a != agent.reached_a):
+                                    neighbours4[0] = True
+                                    break
+                    
+                    elif (dx == 0):
+                        if (dy == -1):
+
+                            if len( self.grid[x, y] ) > 0:
+
+                                for n in self.grid[x, y]:
+                                    if (n.reached_a != agent.reached_a):
+                                        neighbours4[1] = True
+                                        break
+                                
+                        elif (dy == 1):
+                            
+                            if len( self.grid[x, y] ) > 0:
+
+                                for n in self.grid[x, y]:
+                                    if (n.reached_a != agent.reached_a):
+                                        neighbours4[2] = True
+                                        break
+
+                    elif (dx == 1) and (dy == 0):
+                        if len( self.grid[x, y] ) > 0:
+                            
+                            for n in self.grid[x, y]:
+                                if (n.reached_a != agent.reached_a):
+                                    neighbours4[3] = True
+                                    break
+
                 
                 i += 1
         
-        return neighbours
+        # return all 8 neighbours
+        # return neighbours
+    
+        # return just NESW neighbours
+        return neighbours[:4]
 
     def display_agent_neighbourhood(self, agent):
 
@@ -162,10 +205,10 @@ class GridWorld:
         # -12s and 25s give 70-74% successes
 
         ## rewards/penalties
-        boundary_pen = -25
-        a_reach_rew = 100
-        b_reach_rew = 100
-        collision_pen = -100
+        boundary_pen = -12
+        a_reach_rew = 25
+        b_reach_rew = 25
+        collision_pen = -12
 
         new_pos = agent.pos
         agent.num_steps += 1
