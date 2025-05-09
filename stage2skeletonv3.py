@@ -7,9 +7,8 @@ import numpy as np
 # You need to instantiate the constant for the size of the state space below. This will be used as the size of the input tensor for your Q-network
 
 # %%
-# statespace_size = 11
 statespace_size = 7
-# learning_rate = 1e-3
+
 learning_rate = 2e-4
 
 # debug
@@ -122,11 +121,8 @@ def train_one_step(states, actions, targets, gamma):
   # pass to this function: state1_batch, action_batch, TD_batch
   global model, model2
   state1_batch = torch.cat([torch.from_numpy(s).float() for s in states])
-  # state1_batch = torch.tensor(np.array(states), dtype=torch.float32)
   action_batch = torch.LongTensor(actions)
   Q1 = model(state1_batch)
-  # print(state1_batch.shape)
-  # print(action_batch.shape)
   X = Q1.gather(dim=1,index=action_batch.unsqueeze(dim=1)).squeeze()
   Y = torch.tensor(targets)
   loss = loss_fn(X, Y)
