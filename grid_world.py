@@ -223,8 +223,8 @@ class GridWorld:
         # try higher cycle rew
         ## rewards/penalties
         boundary_pen = -25
-        a_reach_rew = 50
-        b_reach_rew = 50
+        a_reach_rew = 25
+        b_reach_rew = 25
         collision_pen = -25
         per_cycle_rew = 0
         step_pen = -1

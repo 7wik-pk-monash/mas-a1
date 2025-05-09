@@ -19,3 +19,5 @@ rewards 25s, -12s = 40.7
 1e-3 25s, cyc 25, -12 = 25%
 
 100s and -50s = 62% on fixed a and b but different a => goes for a toss
+
+eps decay of 0.99997 for 4.5k epochs

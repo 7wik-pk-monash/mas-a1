@@ -27,8 +27,8 @@ def prepare_torch():
   global loss_fn
   global learning_rate
   l1 = statespace_size
-  l2 = 24
-  l3 = 24
+  l2 = 64
+  l3 = 64
   l4 = 4
   model = torch.nn.Sequential(
     torch.nn.Linear(l1, l2),
