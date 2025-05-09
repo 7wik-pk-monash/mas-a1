@@ -111,7 +111,7 @@ def get_maxQ(next_states):
     next_states_tensor = torch.from_numpy(next_states).float()  # Convert to PyTorch tensor
     with torch.no_grad():  # Important: Disable gradient calculation
         q_values = model2(next_states_tensor)  # Shape: (batch_size, 1, action_space_size)
-        max_q_values, _ = torch.max(q_values, dim=1)  # Squeeze the middle dim, then get max
+        max_q_values, _ = torch.max(q_values.squeeze(1), dim=1)  # Squeeze the middle dim, then get max
     return max_q_values.numpy()  # Convert back to NumPy array
 
 # %% [markdown]
@@ -127,7 +127,7 @@ def train_one_step(states, actions, targets, gamma):
   Q1 = model(state1_batch)
   # print(state1_batch.shape)
   # print(action_batch.shape)
-  X = Q1.gather(dim=1,index=action_batch.unsqueeze(dim=-1)).squeeze()
+  X = Q1.gather(dim=1,index=action_batch.unsqueeze(dim=1)).squeeze()
   Y = torch.tensor(targets)
   loss = loss_fn(X, Y)
   optimizer.zero_grad()
