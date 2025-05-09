@@ -9,3 +9,12 @@ start agents of random types from random locs in each epoch
 defn of done:
 all 4 agents must switch reached_a at least twice
 look into eps decay - sus
+
+rewards 25s, -12s = 40.7
+12s -12s = c:c 1:3 and terrible perf
+
+1e-3 25s and -12 = 29.2%
+# running 50s and -25 2e-4 terrible
+
+1e-3 25s, cyc 25, -12 = 25%
+

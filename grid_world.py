@@ -5,7 +5,12 @@ import random as rd
 from stage2skeletonv3 import statespace_size
 
 # north, east, south, west are the valid actions each agent can take
-actions = ['n', 'e', 's', 'w']
+actions = ['n', 'w', 'e', 's']
+
+def dir(start,end): #direction vector for two grid positions
+    (x,y)=start
+    (a,b)=end
+    return ((a-x, b-y))
 
 class Agent:
 
@@ -22,6 +27,7 @@ class Agent:
 
         self.num_collisions = 0
         self.num_steps = 0
+        self.cycles = 0
     
     def _reset(self, pos, reached_a, loc_a):
 
@@ -34,6 +40,7 @@ class Agent:
         self.done = False
         self.num_collisions = 0
         self.num_steps = 0
+        self.cycles = 0
 
 
 class GridWorld:
@@ -92,9 +99,9 @@ class GridWorld:
 
     def get_agents_neighbourhood_opp_type(self, agent):
         
-        neighbours = [ False, False, False , \
-                       False,        False , \
-                       False, False, False ]
+        # neighbours = [ False, False, False , \
+        #                False,        False , \
+        #                False, False, False ]
 
         neighbours4 = [False, False, False, False]
 
@@ -119,36 +126,43 @@ class GridWorld:
                     # just NESW neighbours
                     if (dy == 0) and (dx == -1):
                         if len( self.grid[x, y] ) > 0:
-                            
+                            # print("probing", (x,y))
                             for n in self.grid[x, y]:
                                 if (n.reached_a != agent.reached_a):
+                                    # print(f"opp neighbour {n.id} found")
                                     neighbours4[0] = True
                                     break
                     
                     elif (dx == 0):
                         if (dy == -1):
 
+                            # print("probing", (x,y))
                             if len( self.grid[x, y] ) > 0:
 
                                 for n in self.grid[x, y]:
                                     if (n.reached_a != agent.reached_a):
+                                        # print(f"opp neighbour {n.id} found")
                                         neighbours4[1] = True
                                         break
                                 
                         elif (dy == 1):
-                            
+                            # print("probing", (x,y))
+
                             if len( self.grid[x, y] ) > 0:
 
                                 for n in self.grid[x, y]:
                                     if (n.reached_a != agent.reached_a):
+                                        # print(f"opp neighbour {n.id} found")
                                         neighbours4[2] = True
                                         break
 
                     elif (dx == 1) and (dy == 0):
+                        # print("probing", (x,y))
                         if len( self.grid[x, y] ) > 0:
                             
                             for n in self.grid[x, y]:
                                 if (n.reached_a != agent.reached_a):
+                                    # print(f"opp neighbour {n.id} found")
                                     neighbours4[3] = True
                                     break
 
@@ -157,24 +171,25 @@ class GridWorld:
         
         # return all 8 neighbours
         # return neighbours
-    
+
         # return just NESW neighbours
-        return neighbours[:4]
+        return neighbours4
 
-    def display_agent_neighbourhood(self, agent):
+    # # only works with 8 N
+    # def display_agent_neighbourhood(self, agent):
 
-        neighbours = self.get_agents_neighbourhood_opp_type(agent)
+    #     neighbours = self.get_agents_neighbourhood_opp_type(agent)
 
-        for i in range(len(neighbours)):
+    #     for i in range(len(neighbours)):
 
-            op = '-' if neighbours[i] == False else 'A'
-            print(op, end=' ')
+    #         op = '-' if neighbours[i] == False else 'A'
+    #         print(op, end=' ')
             
-            if i == 3:
-                print('  ', end='')
+    #         if i == 3:
+    #             print('  ', end='')
 
-            if (i == 2) or (i == 4) or (i == 7):
-                print()
+    #         if (i == 2) or (i == 4) or (i == 7):
+    #             print()
 
     # should get an agent-specific game state in an np array representation to be used in training the DQN
     # should uniquely encode every possible permutation of A and B's locations and grid shape
@@ -187,11 +202,11 @@ class GridWorld:
 
         neighbourhood_state = self.get_agents_neighbourhood_opp_type(agent)
 
-        state = [agent.pos[0], agent.pos[1]] + list(self.loc_a) \
-            + list(self.loc_b) + [int(agent.reached_a)]
+        state = [agent.pos[0], agent.pos[1]] + list(dir(self.loc_a,agent.pos)) \
+            + list(dir(self.loc_b,agent.pos)) + [int(agent.reached_a)]
 
-        for n in neighbourhood_state:
-            state.append(int(n))
+        # for n in neighbourhood_state:
+        #     state.append(int(n))
 
         return np.array(state).reshape(1, statespace_size)
 
@@ -204,11 +219,15 @@ class GridWorld:
 
         # -12s and 25s give 70-74% successes
 
+        ## try 100s and -25 with 200 for cycles with lr of 2e-4 and sync of 200 = bad loss
+        # try higher cycle rew
         ## rewards/penalties
         boundary_pen = -12
-        a_reach_rew = 25
-        b_reach_rew = 25
-        collision_pen = -12
+        a_reach_rew = 12
+        b_reach_rew = 12
+        collision_pen = -0
+        per_cycle_rew = 10
+        step_pen = -1
 
         new_pos = agent.pos
         agent.num_steps += 1
@@ -260,21 +279,21 @@ class GridWorld:
         self.grid[ new_pos[0], new_pos[1] ].append(agent)
         agent.pos = new_pos
 
-        loc_reach_rew = -1
+        loc_reach_rew = step_pen
 
         ## check if agent reached A or B and reward
         if ( new_pos == self.loc_a ) and ( not agent.reached_a ):
             agent.reached_a = True
-            loc_reach_rew = a_reach_rew
+            agent.cycles += 1
+            loc_reach_rew = a_reach_rew + (agent.cycles * per_cycle_rew)
         
         elif ( new_pos == self.loc_b ) and ( agent.reached_a ):
-            agent.done = True
             # reached_a gets set to false as we need the agents to learn an infinite behavior - the agent will now head back to A
             agent.reached_a = False
-            loc_reach_rew = b_reach_rew
+            agent.cycles += 1
+            loc_reach_rew = b_reach_rew + ( agent.cycles * per_cycle_rew )
         
         ## else: check head-on collisions and penalise
-        # TODO test
         else:
             agents_in_cell = self.grid[new_pos[0], new_pos[1]]
             for agent2 in agents_in_cell:
@@ -341,6 +360,11 @@ def init_agents(num_agents, loc_a, loc_b):
             agents.append( Agent(i+1, loc_b, False, loc_a) )
             continue
         
+        # # debug force 2 at A
+        # if i == 1:
+        #     agents.append( Agent(i+1, loc_a, True, loc_a) )
+        #     continue
+        
         # # debug - force b to start at a
         # if i == 1:
         #     agents.append( Agent(i+1, loc_a, loc_a) )
@@ -372,8 +396,8 @@ if __name__ == '__main__':
     m = 5
     num_agents = 4
     
-    loc_a = (4,1)
-    loc_b = (3,2)
+    loc_a = (2,1)
+    loc_b = (2,2)
     agents = init_agents(num_agents, loc_a, loc_b)
 
     gw = GridWorld(n, m, loc_a, loc_b, agents)
@@ -389,10 +413,10 @@ if __name__ == '__main__':
     # a1n = gw.get_agents_neighbourhood(agent=agents[0])
     # a2n = gw.get_agents_neighbourhood(agent=agents[1])
 
-    gw.display_agent_neighbourhood(agents[0])
+    # gw.display_agent_neighbourhood(agents[0])
     print("agent 1 np state:", gw.get_np_state_for_agent(agents[0]))
     print()
-    gw.display_agent_neighbourhood(agents[1])
+    # gw.display_agent_neighbourhood(agents[1])
     print("agent 2 np state:", gw.get_np_state_for_agent(agents[1]))
 
     # # another run
