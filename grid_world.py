@@ -222,11 +222,11 @@ class GridWorld:
         ## try 100s and -25 with 200 for cycles with lr of 2e-4 and sync of 200 = bad loss
         # try higher cycle rew
         ## rewards/penalties
-        boundary_pen = -12
-        a_reach_rew = 12
-        b_reach_rew = 12
-        collision_pen = -0
-        per_cycle_rew = 10
+        boundary_pen = -50
+        a_reach_rew = 100
+        b_reach_rew = 100
+        collision_pen = -50
+        per_cycle_rew = 0
         step_pen = -1
 
         new_pos = agent.pos
